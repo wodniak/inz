@@ -9,9 +9,9 @@
 using namespace std;
 using namespace cv;
 
+
 //virtual bluetooth com port
 char port_name[9] = "\\\\.\\COM8";
-
 
 int main()
 {
@@ -30,10 +30,16 @@ int main()
 		tank.read_sensors();
 	}
 	*/
-	
+
+	//global windows
+	namedWindow("src", WINDOW_NORMAL);
+	namedWindow("dst", WINDOW_NORMAL);
+
+	//get maze
+	draw_maze();
+
+	//keep track of tank
 	processImages("data\\img0.jpg");
-
-
 	waitKey(0);
 	
 	return 0;

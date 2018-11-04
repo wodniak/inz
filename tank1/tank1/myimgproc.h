@@ -12,5 +12,7 @@
 #include<opencv2/opencv.hpp>
 
 void processImages(const char* firstFrameFilename);
+void draw_maze(void);
+void histogram_debug(void);
 
 #endif // MYIMGPROC_H
