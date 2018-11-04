@@ -1,0 +1,5 @@
+tank1/x64/*
+tank1/tank1/x64/*
+tank1/tank1/*.vcx*
+tank1/tank1.sln
+tank1/.vs/*
