@@ -30,17 +30,45 @@ int main()
 		tank.read_sensors();
 	}
 	*/
+	Myimgproc::createAllWindows();
 
-	//global windows
-	namedWindow("src", WINDOW_NORMAL);
-	namedWindow("dst", WINDOW_NORMAL);
+	/* 
+	 * Create a VideoCapture object and open the input file
+	 */ 
+	VideoCapture cap("films\\MAH00922.mp4");
+
+	// Check if camera opened successfully
+	if (!cap.isOpened()) {
+		cout << "Error opening video stream or file" << endl;
+		return -1;
+	}	
+	
+	//matrix for each frame in video
+	Mat frame;
+
+	//get first frame without robot
+	cap >> frame;
+
+	Myimgproc::init();
 
 	//get maze
-	draw_maze();
+	Myimgproc::draw_maze(frame);
 
-	//keep track of tank
-	processImages("data\\img0.jpg");
-	waitKey(0);
+	int i = 0;
+	//loop until end of video
+	while (!frame.empty())
+	{
+		cout << i;
+		i++;
+		//keep track of tank
+		Myimgproc::processImages(frame);
+		
+		cap >> frame;
+
+		//wait between frames
+		waitKey(100);
+
+	}
 	
 	return 0;
 }
