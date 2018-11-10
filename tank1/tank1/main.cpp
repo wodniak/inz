@@ -35,8 +35,8 @@ int main()
 	/* 
 	 * Create a VideoCapture object and open the input file
 	 */ 
-	VideoCapture cap("films\\MAH00922.mp4");
-
+	VideoCapture cap("films\\MAH00920.mp4");
+	
 	// Check if camera opened successfully
 	if (!cap.isOpened()) {
 		cout << "Error opening video stream or file" << endl;
@@ -54,15 +54,17 @@ int main()
 	//get maze
 	Myimgproc::draw_maze(frame);
 
-	int i = 0;
+	int frame_number = 0;
 	//loop until end of video
 	while (!frame.empty())
 	{
-		cout << i;
-		i++;
-		//keep track of tank
-		Myimgproc::processImages(frame);
-		
+		if (frame_number % 10 == 0)
+		{
+			//keep track of tank
+			Myimgproc::processImages(frame);
+		}
+
+		frame_number++;
 		cap >> frame;
 
 		//wait between frames
