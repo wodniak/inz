@@ -1,4 +1,5 @@
 #include "myimgproc.h"
+#include "Maze.h"
 
 using namespace cv;
 using namespace std;
@@ -33,7 +34,7 @@ void Myimgproc::createAllWindows()
 	namedWindow("BS_MOG_2"  , WINDOW_NORMAL);
 }
 
-/*  Get tank position
+/* Get tank position
 *  mark it with contour 
 *  uses background substraction algorithm
 */
@@ -58,12 +59,32 @@ void Myimgproc::processImages(Mat & frame)
 
 	//find tank contour
 	findContours(fgMaskMOG2, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
-		
+	
+	// vector for rectangles
+	vector<RotatedRect> minRect(contours.size());
+
 	//draw all found countours 
-	for (size_t i = 0; i < contours.size(); i++)
+	for (int i = 0; i < contours.size(); i++)
 	{
-	Scalar color = Scalar(0,0,0);
-	drawContours(frame, contours, i, color, 20, LINE_8, hierarchy, 0);
+		//uncomment if precise contour is needed
+		//Scalar color = Scalar(0,0,0);
+		//drawContours(frame, contours, i, color, 20, LINE_8, hierarchy, 0);
+		
+		Scalar color2 = Scalar(0, 0, 255);
+		
+		// Find the rotated rectangle for each contour
+		minRect[i] = minAreaRect(Mat(contours[i]));
+		//4 points of rectangle
+		Point2f rect_points[4];
+		//draw rectangle
+		minRect[i].points(rect_points);
+		for (int j = 0; j < 4; j++)
+		{
+			line(frame, rect_points[j], rect_points[(j + 1) % 4], color2, 10, LINE_8);
+		}
+		
+		//TODO: get rid of noise rectangles, calculate angle of tank in range 0-360 deg
+		//cout << minRect[i].angle << endl;
 	}
 		
 	//show the current frame and the fg masks
@@ -81,8 +102,6 @@ void Myimgproc::draw_maze(Mat & frame)
 	const int max_value = 220;
 	int low_H = 90, low_S = 60, low_V = 50;
 	int high_H = max_value_H, high_S = max_value, high_V = max_value;
-
-	//Mat object for raw image in HSV, binary image after color extract
 	
 	//change image from BGR to HSV & extract color
 	cvtColor(frame, src_HSV, COLOR_BGR2HSV);
@@ -94,6 +113,8 @@ void Myimgproc::draw_maze(Mat & frame)
 		Size(2 * dilation_size + 1, 2 * dilation_size + 1),
 		Point(dilation_size, dilation_size));
 	dilate(dst, dst, element_dilation);
+	erode(dst, dst, element_dilation);
+	erode(dst, dst, element_dilation);
 
 	//find all contours
 	findContours(dst, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -103,13 +124,220 @@ void Myimgproc::draw_maze(Mat & frame)
 	{
 		cout << i;
 		Scalar color = Scalar(0, 0, 255);
-		drawContours(frame, contours, i, color, 20, LINE_8, hierarchy, 0);
+		drawContours(frame, contours, i, color, 10, LINE_8, hierarchy, 0);
 	}
 
 	//show results
 	imshow("src", frame);
 	imshow("dst", dst);
 }
+
+/*    
+ *  Get graph nodes
+ *  find maze walls and extend them to full screen (canny + houghlines)
+ *  find lines which are between maze walls 
+ *  find line crossings
+ *  create Node objects and initialize them with found points
+ */
+void Myimgproc::create_graph(Mat & frame)
+{
+	//detecting maze lines
+	vector<Vec2f> lines;
+
+	//lines in cartesian system
+	vector<pair<Point, Point>> lines_cart;
+	vector<pair<Point, Point>> lines_cart_vertical;
+	vector<pair<Point, Point>> lines_cart_horizontal;
+	
+	//calculate lines
+	Canny(dst, dst, 100, 300, 3);
+	HoughLines(dst, lines, 1, CV_PI / 180, 170, 0, 0);
+
+	//iterate over lines in polar system
+	//reduce amount of lines by averaging similar lines
+	/*
+	int polar_sum = 0;
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		polar_sum += lines[i][0];
+		if ()
+		lines.erase(lines.begin() + i);
+	}
+	*/
+
+	//iterate over lines in polar system and change them to cartesian
+	//divide them into horizontal and vertical
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		//lines are in polar coordinate system
+		float rho = lines[i][0];
+		float theta = lines[i][1];
+
+		//change to cartesian coordinate system 
+		Point pt1, pt2;
+		double a = cos(theta), b = sin(theta);
+		double x0 = a * rho, y0 = b * rho;
+		pt1.x = cvRound(x0 + 2000 * (-b));
+		pt1.y = cvRound(y0 + 2000 * (a));
+		pt2.x = cvRound(x0 - 2000 * (-b));
+		pt2.y = cvRound(y0 - 2000 * (a));
+
+		//adding line to general vector with lines in cartesian coordinate system
+		lines_cart.push_back(make_pair(pt1, pt2));
+
+		//determine whether line is vertical (slope > 0) or horizontal (slope ~= 0)
+		//calculating slope with formula:
+		// slope = (y2 - y1) / (x2 - x1)
+//TODO : CAN OCCUR ERROR IF X2 - X1 = 0 - MAKE EXCEPTION
+		int slope = (pt2.y - pt1.y) / (pt2.x - pt1.x);
+	
+		//check if it is horizontal
+		if (slope < 0.5 && slope > -0.5)
+		{
+			//add to horizontal lines
+			lines_cart_horizontal.push_back(make_pair(pt1, pt2));
+			printf("horizontal -- Cart: (%d %d) (%d %d)		Polar: (%f %f)		Slope: %i\n"
+				, pt1.x, pt1.y, pt2.x, pt2.y, lines[i][0], lines[i][1], slope);
+
+		}
+		//line is vertical
+		else
+		{
+			//add to vertical lines
+			lines_cart_vertical.push_back(make_pair(pt1, pt2));
+		printf("vertical -- Cart: (%d %d) (%d %d)		Polar: (%f %f)		Slope: %i\n"
+			,pt1.x, pt1.y, pt2.x, pt2.y, lines[i][0], lines[i][1], slope);
+		}
+
+		//drawing
+		line(frame, pt1, pt2, Scalar(0, 255, 0), 8, LINE_8);
+
+	}
+
+
+	//thresholding values
+	int min_dist = 40;
+	int max_dist = 100;
+
+	// iterate over vertical lines in cartesian system
+	// to find lines which will be in the middle of maze path 
+	for (int i = 0; i < lines_cart_vertical.size(); i++)
+	{
+		
+
+
+
+	}
+
+	//print all created lines
+	imshow("src", frame);
+}
+
+
+void Myimgproc::create_graph2()
+{
+	//sliding window params
+	int window_rows = 80;
+	int window_cols = 80;
+	int step = 80;
+
+	//dst with grid
+	Mat grid = dst.clone();
+
+	//vector for nodes
+	vector<Graph_Node> all_nodes;
+
+	//iterate over image with sliding window
+	for (int row = 0; row <= dst.rows - window_rows; row += step)
+	{
+		for (int col = 0; col <= dst.cols - window_cols; col += step)
+		{
+			Rect windows(col, row, window_rows, window_cols);
+			if (check_empty(windows, dst))
+			{
+				//draw
+				rectangle(grid, windows, Scalar(255), 1, 8, 0);
+				printf("Top-left: (%i %i)		bottom-right: (%i %i)\n",
+					windows.tl().x, windows.tl().y, windows.br().x, windows.br().y);
+				//draw point just to show nodes
+				Point2i curr_point = middle_point(windows);
+				circle(grid, curr_point, 15, Scalar(255), -1);
+
+				//init node
+				//all_nodes.push_back(Graph_Node(curr_point));
+			}
+			else
+			{
+				//draw
+				rectangle(grid, windows, Scalar(127), -1);
+			}
+		}
+	}
+	imshow("src", grid);
+	/*
+	//Create adjacent table for each Node
+	for (int i = 0; i < all_nodes.end(), ++i)
+	{
+		
+	}
+	*/
+}
+
+/**
+ *	for each rectangle 
+ *	check if it intersects with maze line
+ *	return true if not intersect
+ */
+bool Myimgproc::check_empty(Rect & windows, Mat & frame)
+{
+	int col_left  = windows.tl().y;
+	int col_right = windows.br().y;
+	int row_left  = windows.tl().x;
+	int row_right = windows.br().x;
+	
+	//w/o crashes at right edge detect in 2nd for loop
+	if (row_right == 1440)
+	{
+		row_right -= 1;
+	}
+
+	printf("EMPTY:: Top-left: (%i %i)		bottom-right: (%i %i)\n",
+		windows.tl().x, windows.tl().y, windows.br().x, windows.br().y);
+	//horizontal rect lines
+	for (int col = windows.tl().x; col < windows.br().x; ++col)
+	{
+			//upper edge
+		if ( (int)frame.at<uchar>(Point2i(col, col_left)) ||
+			//lower edge
+			 (int)frame.at<uchar>(Point2i(col, col_right)) )
+		{
+			cout << "found!";
+			return false;
+		}
+		
+	}
+	//vertical rect lines
+	for (int row = windows.tl().y; row < windows.br().y; ++row)
+	{
+			//left edge
+		if ( (int)frame.at<uchar>(Point2i(row_left, row)) ||
+			//right edge
+			 (int)frame.at<uchar>(Point2i(row_right, row)) )
+		{
+			cout << "found edge!";
+			return false;
+		}
+	}
+	//means that rectangle represent road
+	return true;
+}
+
+Point2i Myimgproc::middle_point(Rect & windows)
+{
+	return Point2i( windows.tl().x + 40, windows.tl().y + 40);
+}
+
+
 
 
 /* Makes 3 channel histogram

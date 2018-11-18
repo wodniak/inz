@@ -2,6 +2,7 @@
 #ifndef MYIMGPROC_H
 #define MYIMGPROC_H
 
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <opencv2/imgcodecs.hpp>
@@ -9,7 +10,8 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
-#include<opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
+
 
 using namespace cv;
 using namespace std;
@@ -54,6 +56,31 @@ public:
 	* and draw them
 	*/
 	static void draw_maze(Mat & frame);
+
+	/**
+	 * Scan 1st frame and create graph nodes
+	 * makes graph with line crossing
+		NOT YET IMPLEMENTED
+	 */
+	static void create_graph(Mat & frame);
+
+	/**
+	 * Scan 1st frame and create graph nodes
+	 * makes graph with rect tiles (sliding window)
+	 */
+	static void create_graph2();
+	
+	/**
+	 *	for each rectangle
+	 *	check if it intersects with maze line
+	 *	return true if not intersect
+	 */
+	static bool check_empty(Rect & windows, Mat & frame);
+
+	static Point2i middle_point(Rect & windows);
+
+	//Point & find_middle_lane(pair<Point, Point> & current_line, vector<pair<Point, Point>> & line_cart);
+
 };
 
 void histogram_debug(void);
