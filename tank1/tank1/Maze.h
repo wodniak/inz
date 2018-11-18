@@ -16,17 +16,17 @@ private:
 	cv::Point2i center;
 	
 	//adjacent Graph_Nodes with distance to them
-	std::vector<std::pair<Graph_Node, int >> adjacent_table;
+	std::vector<std::pair<Graph_Node*, int >> adjacent_table;
 
 public:
 	//create Graph_Node - define center point
 	Graph_Node(cv::Point2i & point);
 
 	//looks for adjacent Graph_Nodes and add them to adjacent_table
-	void fill_adjacent_table(std::vector<Graph_Node> &);
+	void fill_adjacent_table(std::vector<Graph_Node*> &);
 	
 	//calculate distance between 2 Graph_Nodes
-	double getDistance(Graph_Node & next);
+	double getDistance(Graph_Node * next);
 	
 	void print_graph();
 };

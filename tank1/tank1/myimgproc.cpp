@@ -245,7 +245,7 @@ void Myimgproc::create_graph2()
 	Mat grid = dst.clone();
 
 	//vector for nodes
-	vector<Graph_Node> all_nodes;
+	vector<Graph_Node*> all_nodes;
 
 	//iterate over image with sliding window
 	for (int row = 0; row <= dst.rows - window_rows; row += step)
@@ -264,7 +264,7 @@ void Myimgproc::create_graph2()
 				circle(grid, curr_point, 15, Scalar(255), -1);
 
 				//init node
-				all_nodes.push_back(Graph_Node(curr_point));
+				all_nodes.push_back(new Graph_Node(curr_point));
 			}
 			else
 			{
@@ -278,8 +278,8 @@ void Myimgproc::create_graph2()
 	//Create adjacent table for each Node
 	for (int i = 0; i < all_nodes.size(); ++i)
 	{
-		all_nodes[i].fill_adjacent_table(all_nodes);
-		all_nodes[i].print_graph();
+		all_nodes[i]->fill_adjacent_table(all_nodes);
+		all_nodes[i]->print_graph();
 	}
 }
 
