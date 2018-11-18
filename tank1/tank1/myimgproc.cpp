@@ -264,7 +264,7 @@ void Myimgproc::create_graph2()
 				circle(grid, curr_point, 15, Scalar(255), -1);
 
 				//init node
-				//all_nodes.push_back(Graph_Node(curr_point));
+				all_nodes.push_back(Graph_Node(curr_point));
 			}
 			else
 			{
@@ -274,13 +274,13 @@ void Myimgproc::create_graph2()
 		}
 	}
 	imshow("src", grid);
-	/*
+	
 	//Create adjacent table for each Node
-	for (int i = 0; i < all_nodes.end(), ++i)
+	for (int i = 0; i < all_nodes.size(); ++i)
 	{
-		
+		all_nodes[i].fill_adjacent_table(all_nodes);
+		all_nodes[i].print_graph();
 	}
-	*/
 }
 
 /**
