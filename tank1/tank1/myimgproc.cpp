@@ -1,5 +1,4 @@
 #include "myimgproc.h"
-#include "Maze.h"
 
 using namespace cv;
 using namespace std;
@@ -234,7 +233,7 @@ void Myimgproc::create_graph(Mat & frame)
 }
 
 
-void Myimgproc::create_graph2()
+Maze * Myimgproc::create_graph2()
 {
 	//sliding window params
 	int window_rows = 80;
@@ -281,6 +280,9 @@ void Myimgproc::create_graph2()
 		all_nodes[i]->fill_adjacent_table(all_nodes);
 		all_nodes[i]->print_graph();
 	}
+	//init maze
+	Maze * maze = new Maze(&all_nodes);
+	return maze;
 }
 
 /**

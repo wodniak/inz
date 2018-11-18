@@ -45,16 +45,50 @@ void Graph_Node::print_graph()
 	}
 }
 
-
-
-
-Maze::Maze()
+cv::Point2i * Graph_Node::getCenter()
 {
-
+	return &center;
 }
 
 
+
+Maze::Maze(std::vector<Graph_Node*> * g)
+{
+	graph = g;
+	
+	//iterate over all nodes
+	//first encountered node in 1st line is end node 
+	//first encountered node in last line is start node 
+	for (int i = 0; i < g->size(); ++i)
+	{
+		if (g -> operator[](i)->getCenter()->y == 40)
+		{
+			end_node = g -> operator[](i);
+			break;
+		}
+		else if (g -> operator[](i)->getCenter()->y == 40)
+		{
+			start_node = g -> operator[](i);
+			break;
+		}
+	}
+}
+
 Maze::~Maze()
+{
+}
+
+std::vector<Graph_Node*> Maze::use_dikstra()
+{
+	return std::vector<Graph_Node*>();
+}
+
+std::vector<Graph_Node*> Maze::use_a_star()
+{
+	return std::vector<Graph_Node*>();
+}
+
+void Maze::draw_solution(std::vector<Graph_Node*>)
 {
 }
 

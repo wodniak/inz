@@ -53,7 +53,8 @@ int main()
 
 	//get maze
 	Myimgproc::draw_maze(frame);
-	Myimgproc::create_graph2();
+	Maze * maze = Myimgproc::create_graph2();
+	
 
 	int frame_number = 0;
 	//loop until end of video

@@ -29,20 +29,32 @@ public:
 	double getDistance(Graph_Node * next);
 	
 	void print_graph();
+
+	//getter for center point
+	cv::Point2i * getCenter();
 };
+
 
 /*
  * Finds way out of defined maze
+ * uses Dikstra algorythm to solve problem
  */
 class Maze
 {
 private:
 	//list of all Graph_Nodes
-	std::vector<Graph_Node*> graph;
-public:
-	Maze();
-	~Maze();
+	std::vector<Graph_Node*> * graph;
+	Graph_Node * start_node;
+	Graph_Node * end_node;
 
+public:
+	//find start and end node
+	Maze(std::vector<Graph_Node*> *);
+
+	~Maze();
+	std::vector<Graph_Node*> use_dikstra();
+	std::vector<Graph_Node*> use_a_star();
+	void draw_solution(std::vector<Graph_Node*>);
 };
 
 
