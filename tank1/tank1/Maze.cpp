@@ -52,9 +52,9 @@ cv::Point2i * Graph_Node::getCenter()
 
 
 
-Maze::Maze(std::vector<Graph_Node*> * g)
+Maze::Maze(std::vector<Graph_Node*> * g) : distance()
 {
-	graph = g;
+	unvisited = g;
 	
 	//iterate over all nodes
 	//first encountered node in 1st line is end node 
@@ -72,6 +72,14 @@ Maze::Maze(std::vector<Graph_Node*> * g)
 			break;
 		}
 	}
+
+	visited = new std::vector<Graph_Node*>[g->size()];
+
+	//set all distances to INFINITY
+	for (std::vector<Graph_Node*>::iterator it = g->begin(); it != g->end(); ++it)
+	{
+		distance.insert(std::make_pair(*it, INF));
+	}
 }
 
 Maze::~Maze()
@@ -80,6 +88,29 @@ Maze::~Maze()
 
 std::vector<Graph_Node*> Maze::use_dikstra()
 {
+	typedef std::pair<int, int> iPair;
+	//priority queue for dikstra algorithm
+	std::priority_queue< iPair, std::vector<iPair>, std::greater<iPair>> pq;
+	
+	//throw start_node to visited vector
+	//delete from unvisited 
+	//set distance to 0 
+	for (std::vector<Graph_Node*>::iterator it = unvisited->begin(); it != unvisited->end(); ++it)
+	{
+		if (*it == start_node)
+		{
+			visited->push_back(*it);
+			unvisited->erase(it);
+			distance[*it] = 0;
+			break;
+		}
+	}
+
+
+
+
+
+
 	return std::vector<Graph_Node*>();
 }
 

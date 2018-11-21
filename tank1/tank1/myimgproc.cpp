@@ -236,14 +236,14 @@ void Myimgproc::create_graph(Mat & frame)
 Maze * Myimgproc::create_graph2()
 {
 	//sliding window params
-	int window_rows = 80;
-	int window_cols = 80;
-	int step = 80;
+	int window_rows = 50;
+	int window_cols = 50;
+	int step = 50;
 
 	//dst with grid
 	Mat grid = dst.clone();
 
-	//vector for nodes
+	//need vector because we dont know how many there will be nodes...
 	vector<Graph_Node*> all_nodes;
 
 	//iterate over image with sliding window

@@ -5,6 +5,7 @@
 #include<iostream>
 #include<opencv2/opencv.hpp>
 
+#define INF 0x3f3f3f3f 
 /*
  * Single Graph_Node in graph
  * Include list of adjacent Graph_Nodes with distance to them
@@ -42,16 +43,19 @@ public:
 class Maze
 {
 private:
-	//list of all Graph_Nodes
-	std::vector<Graph_Node*> * graph;
+	//vector of all Graph_Nodes
 	Graph_Node * start_node;
 	Graph_Node * end_node;
+
+	std::vector<Graph_Node*> * unvisited;
+	std::vector<Graph_Node*> * visited;
+	std::map<Graph_Node*, int> distance;
 
 public:
 	//find start and end node
 	Maze(std::vector<Graph_Node*> *);
-
 	~Maze();
+
 	std::vector<Graph_Node*> use_dikstra();
 	std::vector<Graph_Node*> use_a_star();
 	void draw_solution(std::vector<Graph_Node*>);
