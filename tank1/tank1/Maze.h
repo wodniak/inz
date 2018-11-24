@@ -33,6 +33,9 @@ public:
 
 	//getter for center point
 	cv::Point2i * getCenter();
+
+	//getter for adjacent_table
+	std::vector<std::pair<Graph_Node*, int >> * getAdjTable() { return &adjacent_table; };
 };
 
 
@@ -43,12 +46,15 @@ public:
 class Maze
 {
 private:
-	//vector of all Graph_Nodes
+	//first and last node
 	Graph_Node * start_node;
 	Graph_Node * end_node;
 
+	//checklists
 	std::vector<Graph_Node*> * unvisited;
 	std::vector<Graph_Node*> * visited;
+	
+	//edges
 	std::map<Graph_Node*, int> distance;
 
 public:
@@ -56,9 +62,15 @@ public:
 	Maze(std::vector<Graph_Node*> *);
 	~Maze();
 
+	//looks for
+	std::vector<Graph_Node*> find_closest();
+	
+	//draw way out of maze
+	void draw_solution(std::vector<Graph_Node*>);
+
+	//solving maze
 	std::vector<Graph_Node*> use_dikstra();
 	std::vector<Graph_Node*> use_a_star();
-	void draw_solution(std::vector<Graph_Node*>);
 };
 
 

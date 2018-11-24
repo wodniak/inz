@@ -88,13 +88,17 @@ Maze::~Maze()
 
 std::vector<Graph_Node*> Maze::use_dikstra()
 {
-	typedef std::pair<int, int> iPair;
-	//priority queue for dikstra algorithm
-	std::priority_queue< iPair, std::vector<iPair>, std::greater<iPair>> pq;
+	typedef std::pair<Graph_Node*, int> GPair;
+	/* priority queue for dikstra algorithm
+	   stores 
+	*/
+	std::priority_queue< GPair, std::vector<GPair>, std::greater<GPair>> pq;
 	
-	//throw start_node to visited vector
-	//delete from unvisited 
-	//set distance to 0 
+	/*
+	throw start_node to visited vector
+	delete from unvisited 
+	set distance to 0 for starting node, rest init with infinity
+	*/
 	for (std::vector<Graph_Node*>::iterator it = unvisited->begin(); it != unvisited->end(); ++it)
 	{
 		if (*it == start_node)
@@ -102,12 +106,45 @@ std::vector<Graph_Node*> Maze::use_dikstra()
 			visited->push_back(*it);
 			unvisited->erase(it);
 			distance[*it] = 0;
-			break;
+			pq.push(std::make_pair(*it,distance[*it]));		//add to priority queue
 		}
+		//init all distances with infinity
+		distance[*it] = INF;
 	}
 
+	Graph_Node * top_node;
 
+	/*
+		loop until all nodes are visited
+		1. get top Node in priority queue
+		2. update distance to nodes
+		3. add nodes with distance to pq
+		4. mark node as visited
+		5. pop top node from pq
+	*/
+	while (unvisited->size() != 0)
+	{
+		//top node
+		top_node = pq.top().first;
+		
+		//update distances
+		for (std::vector<GPair>::iterator it = top_node->getAdjTable->begin(); it != top_node->getAdjTable->end(); ++it)
+		{
+			distance[it->first] = it->second;
+			//add next moves to pq
+			pq.push(*it);
+		}
 
+		//mark node as visited
+		visited->push_back(top_node);
+		//delete node from unvisited
+		for (std::vector<Graph_Node*>::iterator it = unvisited->begin(); it != unvisited->end(); ++it)
+		{
+			if (*it == start_node)	unvisited->erase(it);
+		}
+
+		pq.pop();
+	}
 
 
 
