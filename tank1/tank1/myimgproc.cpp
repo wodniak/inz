@@ -236,9 +236,9 @@ void Myimgproc::create_graph(Mat & frame)
 Maze * Myimgproc::create_graph2()
 {
 	//sliding window params
-	int window_rows = 50;
-	int window_cols = 50;
-	int step = 50;
+	int window_rows = 80;
+	int window_cols = 80;
+	int step = 80;
 
 	//dst with grid
 	Mat grid = dst.clone();
@@ -281,7 +281,7 @@ Maze * Myimgproc::create_graph2()
 		all_nodes[i]->print_graph();
 	}
 	//init maze
-	Maze * maze = new Maze(&all_nodes);
+	Maze * maze = new Maze(all_nodes);
 	return maze;
 }
 

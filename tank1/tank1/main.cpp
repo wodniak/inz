@@ -35,7 +35,7 @@ int main()
 	/* 
 	 * Create a VideoCapture object and open the input file
 	 */ 
-	VideoCapture cap("films\\MAH00920.mp4");
+	VideoCapture cap("films\\test_dijkstra.mp4");
 	
 	// Check if camera opened successfully
 	if (!cap.isOpened()) {
@@ -54,7 +54,8 @@ int main()
 	//get maze
 	Myimgproc::draw_maze(frame);
 	Maze * maze = Myimgproc::create_graph2();
-	
+	maze->use_dikstra(); 
+	maze->draw_solution(frame);
 
 	int frame_number = 0;
 	//loop until end of video
