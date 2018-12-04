@@ -53,7 +53,7 @@ private:
 	Graph_Node * start_node;
 	Graph_Node * end_node;
 
-	//checklists
+	//checklist
 	vector<Graph_Node*> * unvisited;
 	vector<Graph_Node*> * visited;
 	
@@ -71,6 +71,8 @@ public:
 	//solving maze
 	vector<Graph_Node*> use_dikstra();
 	vector<Graph_Node*> use_a_star();
+
+	double calc_dist_to_line(cv::Point2i & tank_pos);
 };
 
 /*

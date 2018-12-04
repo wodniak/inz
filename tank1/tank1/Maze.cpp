@@ -182,6 +182,40 @@ vector<Graph_Node*> Maze::use_a_star()
 	return vector<Graph_Node*>();
 }
 
+double Maze::calc_dist_to_line(cv::Point2i & tank_pos)
+{
+	vector<double> all_dist(distance.size()); //vector for all distances from tank to nodes
+	
+	//first and last node - needed to go through every node in line
+	Graph_Node * node = end_node;
+	Graph_Node * next = distance.at(end_node).second;
+	double dist;	//distance in px from node to tank position
+	int i = 0;
+	while (true)
+	{
+		//check if arrived to start_node
+		if (next == nullptr)
+		{
+			//draw last line from node to start node
+			break;
+		}
+		else
+		{
+			//calculate manhatan distance from node to tank position
+			dist = sqrt( pow((tank_pos.x - node->getCenter()->x),2) + pow((tank_pos.y - node->getCenter()->y),2) );
+			all_dist[i++] = dist;		//add to all distances
+
+			//swap to new nodes 
+			node = next;
+			next = distance.at(node).second;
+		}
+
+	}
+
+	sort(all_dist.begin(), all_dist.end());			//sort values in vector
+	return all_dist[0];
+}
+
 void Maze::draw_solution(cv::Mat& img)
 {
 	Graph_Node * node = end_node;

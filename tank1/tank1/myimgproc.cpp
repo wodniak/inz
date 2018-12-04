@@ -37,7 +37,7 @@ void Myimgproc::createAllWindows()
 *  mark it with contour 
 *  uses background substraction algorithm
 */
-void Myimgproc::processImages(Mat & frame)
+Point2i & Myimgproc::processImages(Mat & frame)
 {
 	//update the background model
 	pMOG2->apply(frame, fgMaskMOG2);
@@ -52,6 +52,7 @@ void Myimgproc::processImages(Mat & frame)
 		Point(dilation_size, dilation_size));
 
 	erode(fgMaskMOG2, fgMaskMOG2, element_erosion);
+	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
 	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
 	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
 	/*-----------------------*/
@@ -83,12 +84,14 @@ void Myimgproc::processImages(Mat & frame)
 		}
 		
 		//TODO: get rid of noise rectangles, calculate angle of tank in range 0-360 deg
-		//cout << minRect[i].angle << endl;
+		cout << minRect[i].angle << endl;
 	}
 		
 	//show the current frame and the fg masks
 	imshow("Frame", frame);
 	imshow("BS_MOG_2", fgMaskMOG2);
+
+	return 
 }
 
 /*Extract maze lines from first image

@@ -15,16 +15,14 @@ char port_name[9] = "\\\\.\\COM8";
 
 int main()
 {
-	/*
-	cout << "Started program.\n";
 	Tank tank(port_name);
 	if (tank.isConnected())
 		cout << "Connection Established" << endl;
 	else
 		cout << "ERROR, check port name";
+	/*
 	while (tank.isConnected())
 	{
-
 		tank.steer();
 		Sleep(500);
 		tank.read_sensors();
@@ -35,7 +33,7 @@ int main()
 	/* 
 	 * Create a VideoCapture object and open the input file
 	 */ 
-	VideoCapture cap("films\\test_dijkstra.mp4");
+	VideoCapture cap("films\\MAH00922.mp4");
 	
 	// Check if camera opened successfully
 	if (!cap.isOpened()) {
@@ -48,6 +46,7 @@ int main()
 
 	//get first frame without robot
 	cap >> frame;
+	frame = imread("data\\test.jpg", 1); 
 
 	Myimgproc::init();
 
@@ -58,13 +57,17 @@ int main()
 	maze->draw_solution(frame);
 
 	int frame_number = 0;
+	Point2i tank_position;
+	double dist_line;
 	//loop until end of video
 	while (!frame.empty())
 	{
 		if (frame_number % 10 == 0)
 		{
-			//keep track of tank
-			Myimgproc::processImages(frame);
+			tank_position = Myimgproc::processImages(frame);			//keep track of tank
+			dist_line = maze->calc_dist_to_line(tank_position);			//calc distance to line
+
+
 		}
 
 		frame_number++;
