@@ -75,6 +75,7 @@ Maze::Maze(vector<Graph_Node*> & all_nodes)
 			if (g -> operator[](i)->getCenter()->y == 40 && end_node == nullptr)
 			{
 				end_node = g -> operator[](i);
+				curr_node = g -> operator[](i);
 			}
 			else if (g -> operator[](i)->getCenter()->y == 1000) //hardcoded last sliding window line!!
 			{
@@ -182,38 +183,54 @@ vector<Graph_Node*> Maze::use_a_star()
 	return vector<Graph_Node*>();
 }
 
-double Maze::calc_dist_to_line(cv::Point2i & tank_pos)
+
+tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angle)
 {
-	vector<double> all_dist(distance.size()); //vector for all distances from tank to nodes
-	
-	//first and last node - needed to go through every node in line
-	Graph_Node * node = end_node;
-	Graph_Node * next = distance.at(end_node).second;
-	double dist;	//distance in px from node to tank position
-	int i = 0;
-	while (true)
+	//get next node 
+	Graph_Node * next_node = distance.at(curr_node).second;
+
+	//check if arrived to start_node
+	if (curr_node == nullptr || next_node == nullptr)
 	{
-		//check if arrived to start_node
-		if (next == nullptr)
-		{
-			//draw last line from node to start node
-			break;
-		}
-		else
-		{
-			//calculate manhatan distance from node to tank position
-			dist = sqrt( pow((tank_pos.x - node->getCenter()->x),2) + pow((tank_pos.y - node->getCenter()->y),2) );
-			all_dist[i++] = dist;		//add to all distances
-
-			//swap to new nodes 
-			node = next;
-			next = distance.at(node).second;
-		}
-
+		cout << "THE END";
+		exit(0);
 	}
+	
+	//calculate shortest distance from node to tank position
+	double dist_to_node = sqrt( pow((tank_pos.x - curr_node->getCenter()->x),2) + pow((tank_pos.y - curr_node->getCenter()->y),2) );
 
-	sort(all_dist.begin(), all_dist.end());			//sort values in vector
-	return all_dist[0];
+	//calculate line coeffs between 2 nodes
+	double A1, B1, C1;		//line coeffs 
+	tie(A1, B1, C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
+
+	//calculate perpendicular distance from tank to line between nodes
+	double dist_perpendicular = (A1*tank_pos.x + B1 * tank_pos.y + C1) / (sqrt(pow(A1, 2) + pow(B1, 2)));
+
+
+
+	//calculate angle of line between 2 nodes (y = ax + b)  
+	//double a_line_coef = tan((A1*B2 - A2*B1) / (A1*A2 + B1*B2));
+
+	//bounding boxes for node and tank
+	cv::Rect tank_rect(tank_pos.x - 20, tank_pos.y - 20, 40, 40);
+	cv::Rect node_rect(curr_node->getCenter()->x - 20, curr_node->getCenter()->x - 20, 40, 40);
+
+
+	//check intersection
+	if((tank_rect & node_rect).area() > 0)
+	{
+		cout << "Arrived to : " << curr_node << endl;
+		//get next node 
+		curr_node = distance.at(curr_node).second;
+	}
+	
+	return dist_to_node;
+}
+
+void Maze::draw_line_to_node(cv::Mat & img, cv::Point2i & tank_pos)
+{
+	cv::line(img, *(curr_node->getCenter()), tank_pos, cv::Scalar(255, 255, 0), 10, 8, 0);
+	cv::imshow("dst", img);
 }
 
 void Maze::draw_solution(cv::Mat& img)
@@ -246,3 +263,21 @@ void Maze::draw_solution(cv::Mat& img)
 	}
 }
 
+
+/*	@!brief : calculate linear coeffs connecting 2 points (Ax + Bx + C = 0)
+ *	@param p1 : coordinates of first node in graph
+ *	@param p2 : coordinates of second node in graph
+ *	@return : tuple with line coeffs
+ */
+tuple<double, double, double> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2)
+{
+	/*  { A = yb - ya
+		{ B = xa - xb
+		{ C = xb*ya - xa*yb
+	*/
+	double A, B, C;		
+	A = p2->y - p1->y;
+	B = p1->x - p2->x;
+	C = p2->x * p1->y - p1->x * p2->y;
+	return make_tuple(A, B, C);
+}

@@ -53,6 +53,9 @@ private:
 	Graph_Node * start_node;
 	Graph_Node * end_node;
 
+	//next node to be visited by tank
+	Graph_Node * curr_node;
+
 	//checklist
 	vector<Graph_Node*> * unvisited;
 	vector<Graph_Node*> * visited;
@@ -72,7 +75,9 @@ public:
 	vector<Graph_Node*> use_dikstra();
 	vector<Graph_Node*> use_a_star();
 
-	double calc_dist_to_line(cv::Point2i & tank_pos);
+	tuple<double, double > calc_dist_to_line(cv::Point2i & tank_pos, int &angle);
+
+	void draw_line_to_node(cv::Mat & frame, cv::Point2i & tank_pos);
 };
 
 /*
@@ -90,5 +95,13 @@ public:
 		return x.second > y.second;
 	}
 };
+
+/*	@!brief : calculate linear coeffs connecting 2 points (Ax + Bx + C = 0)
+ *	@param p1 : coordinates of first node in graph
+ *	@param p2 : coordinates of second node in graph
+ *	@return : tuple with line coeffs 
+ */
+tuple<double, double, double> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2);
+
 
 #endif // MAZE_H

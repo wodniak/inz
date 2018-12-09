@@ -50,7 +50,7 @@ public:
 	*  mark it with contour
 	*  uses background substraction algorithm
 	*/
-	static Point2i & processImages(Mat & frame);
+	static tuple<Point2i,int> processImages(Mat & frame);
 
 
 	/*Extract maze lines from first image

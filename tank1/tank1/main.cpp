@@ -5,7 +5,6 @@
 #include <string.h>
 #include "tank.h"
 #include "myimgproc.h"
-
 using namespace std;
 using namespace cv;
 
@@ -15,61 +14,72 @@ char port_name[9] = "\\\\.\\COM8";
 
 int main()
 {
+	//	w/o tank
+	/*
 	Tank tank(port_name);
 	if (tank.isConnected())
 		cout << "Connection Established" << endl;
 	else
 		cout << "ERROR, check port name";
-	/*
-	while (tank.isConnected())
-	{
-		tank.steer();
-		Sleep(500);
-		tank.read_sensors();
-	}
 	*/
-	Myimgproc::createAllWindows();
 
-	/* 
-	 * Create a VideoCapture object and open the input file
-	 */ 
-	VideoCapture cap("films\\MAH00922.mp4");
-	
-	// Check if camera opened successfully
-	if (!cap.isOpened()) {
+	Myimgproc::createAllWindows();			//open all opencv windows 
+	//VideoCapture cap(0);					//Create a VideoCapture object and open the input file
+	VideoCapture cap("films\\MAH00922.mp4");	//mock video
+
+	if (!cap.isOpened())					// Check if camera opened successfully 
+	{
 		cout << "Error opening video stream or file" << endl;
 		return -1;
 	}	
+	//TODO gives unknown error - investigate
+	/*
+	cap.set(CAP_PROP_FRAME_WIDTH, 1280);
+	cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+	if (cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH) != 1280)
+		cout << "unable to set 1280*720\n";
+	*/
+
+
+	Mat frame;				//matrix for each frame in video
+	cap >> frame;			//get first frame without robot
+	frame = imread("data\\test.jpg", 1); //mock
 	
-	//matrix for each frame in video
-	Mat frame;
-
-	//get first frame without robot
-	cap >> frame;
-	frame = imread("data\\test.jpg", 1); 
-
 	Myimgproc::init();
-
-	//get maze
-	Myimgproc::draw_maze(frame);
+	Myimgproc::draw_maze(frame);		//get maze
+	
+	//create maze and calculate shortest path
 	Maze * maze = Myimgproc::create_graph2();
 	maze->use_dikstra(); 
 	maze->draw_solution(frame);
 
+
 	int frame_number = 0;
 	Point2i tank_position;
-	double dist_line;
+	int angle;
+	double dist_to_line, cross_track_error;
+	
 	//loop until end of video
-	while (!frame.empty())
+	while (!frame.empty() )
+		//&& tank.isConnected())
 	{
-		if (frame_number % 10 == 0)
+		//	w/o tank
+		/*
+		tank.steer();
+		Sleep(100);
+		tank.read_sensors();
+		*/
+
+		if (frame_number % 10 == 0)			//every 10th frame update steering
 		{
-			tank_position = Myimgproc::processImages(frame);			//keep track of tank
-			dist_line = maze->calc_dist_to_line(tank_position);			//calc distance to line
-
-
+			tie(tank_position,angle) = Myimgproc::processImages(frame);			//keep track of tank center & angle
+			tie(dist_to_line, cross_track_error) = maze->calc_dist_to_line(tank_position,angle);		//calc distance to node
+			
+			maze->draw_line_to_node(frame, tank_position);
+				
 		}
 
+		//get next frame
 		frame_number++;
 		cap >> frame;
 

@@ -15,15 +15,19 @@ vector<Vec4i> Myimgproc::hierarchy;
 Mat Myimgproc::src_HSV;
 Mat Myimgproc::dst;
 
+
+/*	@!bief : enable background subtraction
+ *	@return : void
+ */
 void Myimgproc::init()
 {
 	//create Background Subtractor objects
 	pMOG2 = createBackgroundSubtractorMOG2(500, 150.0, false); //MOG2 approach
 }
 
-/* 
-*Create all opencv windows to show results 
-*/
+/*	@!bief : Create all opencv windows to show results 
+ *	@return : void
+ */
 void Myimgproc::createAllWindows()
 {
 	//global windows
@@ -33,11 +37,14 @@ void Myimgproc::createAllWindows()
 	namedWindow("BS_MOG_2"  , WINDOW_NORMAL);
 }
 
-/* Get tank position
-*  mark it with contour 
-*  uses background substraction algorithm
-*/
-Point2i & Myimgproc::processImages(Mat & frame)
+/*  @!brief : Get tank position
+ *	mark it with contour 
+ *  uses background substraction algorithm
+ *
+ *	@param frame : newest frame from camera
+ *	@return : tuple of center point of tank rectangle contour and angle
+ */
+tuple<Point2i, int> Myimgproc::processImages(Mat & frame)
 {
 	//update the background model
 	pMOG2->apply(frame, fgMaskMOG2);
@@ -58,7 +65,7 @@ Point2i & Myimgproc::processImages(Mat & frame)
 	/*-----------------------*/
 
 	//find tank contour
-	findContours(fgMaskMOG2, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
+	findContours(fgMaskMOG2, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point(0, 0));
 	
 	// vector for rectangles
 	vector<RotatedRect> minRect(contours.size());
@@ -67,10 +74,10 @@ Point2i & Myimgproc::processImages(Mat & frame)
 	for (int i = 0; i < contours.size(); i++)
 	{
 		//uncomment if precise contour is needed
-		//Scalar color = Scalar(0,0,0);
-		//drawContours(frame, contours, i, color, 20, LINE_8, hierarchy, 0);
+		Scalar color = Scalar(0,255,128);
+		drawContours(frame, contours, i, color, 8, LINE_8, hierarchy, 0);
 		
-		Scalar color2 = Scalar(0, 0, 255);
+		Scalar color2 = Scalar(0, 0, 255);		//red
 		
 		// Find the rotated rectangle for each contour
 		minRect[i] = minAreaRect(Mat(contours[i]));
@@ -91,12 +98,17 @@ Point2i & Myimgproc::processImages(Mat & frame)
 	imshow("Frame", frame);
 	imshow("BS_MOG_2", fgMaskMOG2);
 
-	return 
+	if (minRect.size() != 0)
+		return	make_tuple(minRect[0].center, minRect[0].angle);
+	else
+		return make_tuple(Point(0, 0), 0);
 }
 
-/*Extract maze lines from first image
-* and draw them 
-*/
+/*	@!bief: Extract maze lines from first image
+ *			and draw them 
+ *	@param frame : 
+ *	@return : void
+ */	
 void Myimgproc::draw_maze(Mat & frame)
 {
 	//define min and max values for color extraction 
@@ -235,7 +247,10 @@ void Myimgproc::create_graph(Mat & frame)
 	imshow("src", frame);
 }
 
-
+/*	@!brief : 
+ *	
+ *	@return : pointer to initialized Maze object  
+ */
 Maze * Myimgproc::create_graph2()
 {
 	//sliding window params
@@ -288,10 +303,13 @@ Maze * Myimgproc::create_graph2()
 	return maze;
 }
 
-/**
+/*	@!brief : 
  *	for each rectangle 
  *	check if it intersects with maze line
  *	return true if not intersect
+ *	
+ *	@param windows : reference to 
+ *	@param frame : reference to 
  */
 bool Myimgproc::check_empty(Rect & windows, Mat & frame)
 {
