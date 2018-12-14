@@ -75,7 +75,7 @@ public:
 	vector<Graph_Node*> use_dikstra();
 	vector<Graph_Node*> use_a_star();
 
-	tuple<double, double > calc_dist_to_line(cv::Point2i & tank_pos, int &angle);
+	tuple<double, double, bool> calc_dist_to_line(cv::Point2i & tank_pos, int &angle);
 
 	void draw_line_to_node(cv::Mat & frame, cv::Point2i & tank_pos);
 };

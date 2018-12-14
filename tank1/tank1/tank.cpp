@@ -1,16 +1,18 @@
 #include "tank.h"
 #include <iostream>
 
-void Tank::steer_auto(double & cross_track_error, double & tank_position)
+void Tank::steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & above_line)
 {
 	//pid controller
 	double pid_output = pid_control->calculate_PID(cross_track_error);
 
 	//console info
-	std::cout << "Err : " << cross_track_error << " PID: " << pid_output << std::endl;
+	std::cout << "Err : " << cross_track_error << " PID: " << pid_output << "  tank: " << tank_position.x << ",  " << tank_position.y << std::endl;
 
-	//tank on left side of the line
+
+	//tank above of the line
 	//turn right
+	
 	//if (pid_output > 0)
 	//{
 		/*LEFT wheel*/
@@ -93,7 +95,7 @@ void Tank::steer()
 		right_wheel = 0;				//NO key
 
 	/*Debug info*/
-	std::cout << "L: " << int(left_wheel) << " R: " << int(right_wheel) << std::endl;
+	//std::cout << "L: " << int(left_wheel) << " R: " << int(right_wheel) << std::endl;
 	
 	/*Send both left and right steering value*/
 	writeSerialPort(&left_wheel, sizeof(unsigned char));

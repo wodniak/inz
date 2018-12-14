@@ -61,7 +61,7 @@ tuple<Point2i, int> Myimgproc::processImages(Mat & frame)
 	erode(fgMaskMOG2, fgMaskMOG2, element_erosion);
 	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
 	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
-	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
+//	dilate(fgMaskMOG2, fgMaskMOG2, element_dilation);
 	/*-----------------------*/
 
 	//find tank contour

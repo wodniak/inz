@@ -15,22 +15,19 @@ char port_name[9] = "\\\\.\\COM8";
 int main()
 {
 	Tank tank(port_name);
-	//	w/o tank
-	/*
 	if (tank.isConnected())
 		cout << "Connection Established" << endl;
 	else
 		cout << "ERROR, check port name";
-	*/
 
 	Myimgproc::createAllWindows();			//open all opencv windows 
 	//VideoCapture cap(0);					//Create a VideoCapture object and open the input file
-	VideoCapture cap("films\\MAH00922.mp4");	//mock video
+	VideoCapture cap(0);	//mock video
 
 	if (!cap.isOpened())					// Check if camera opened successfully 
 	{
 		cout << "Error opening video stream or file" << endl;
-		return -1;
+		return 15;
 	}	
 	//TODO gives unknown error - investigate
 	/*
@@ -58,26 +55,26 @@ int main()
 	Point2i tank_position;
 	int angle;
 	double dist_to_line, cross_track_error;
-	
+	bool above;
+
 	//loop until end of video
-	while (!frame.empty() )
-		//&& tank.isConnected())
+	while (tank.isConnected())
 	{
-		//	w/o tank
-		/*
+
 		tank.steer();
 		Sleep(100);
-		tank.read_sensors();
-		*/
 
-		if (frame_number % 10 == 0)			//every 10th frame update steering
+		if (frame_number % 5 == 0)			//every 10th frame update steering
 		{
+			//tank.read_sensors();
 			tie(tank_position,angle) = Myimgproc::processImages(frame);			//keep track of tank center & angle
-			tie(dist_to_line, cross_track_error) = maze->calc_dist_to_line(tank_position,angle);		//calc distance to node
+			tie(dist_to_line, cross_track_error, above) = maze->calc_dist_to_line(tank_position,angle);		//calc distance to node
+			
+			tank.steer_auto(cross_track_error, tank_position, above);		//send steering values to robot
 			
 			maze->draw_line_to_node(frame, tank_position);		//just draw line
-			//TODO : do sth with cross track error 
-			tank.steer_auto(cross_track_error, dist_to_line);		//send steering values to robot
+			maze->draw_solution(frame);
+
 		}
 
 		//get next frame
@@ -87,6 +84,5 @@ int main()
 		//wait between frames
 		waitKey(100);
 	}
-	
 	return 0;
 }

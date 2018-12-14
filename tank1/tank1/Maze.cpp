@@ -15,7 +15,7 @@ void Graph_Node::fill_adjacent_table(vector<Graph_Node*> & all_nodes)
 	{
 		int distance = (int)this->getDistance(all_nodes[i]);
 		//ignore self
-		if ( distance == 0 || distance > 120)
+		if ( distance == 0 || distance > 100)
 		{
 			continue;
 		}
@@ -172,9 +172,6 @@ vector<Graph_Node*> Maze::use_dikstra()
 		pq.pop();																		//6. delete top_node from pq
 		printf("visited size: %zi\n", visited->size());
 	}
-
-
-
 	return vector<Graph_Node*>();
 }
 
@@ -184,7 +181,7 @@ vector<Graph_Node*> Maze::use_a_star()
 }
 
 
-tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angle)
+tuple<double, double, bool> Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angle)
 {
 	//get next node 
 	Graph_Node * next_node = distance.at(curr_node).second;
@@ -194,27 +191,31 @@ tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angl
 		cout << "THE END";
 		exit(0);
 	}
-	//y = x + 160
+
 	//calculate shortest distance from node to tank position
 	unsigned int dist_to_node = sqrt( pow((tank_pos.x - curr_node->getCenter()->x),2) + pow((tank_pos.y - curr_node->getCenter()->y),2) );
-	printf("\nStraight distance to next node: %ui\n", dist_to_node);
+	//printf("\nStraight distance to next node: %ui\n", dist_to_node);
+
 	//calculate line coeffs between 2 nodes
 	double A1, B1;
 	long C1;
 	tie(A1,B1,C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
+
 	//calculate perpendicular distance from tank to line between nodes
 	unsigned int dist_perpendicular = abs(A1*tank_pos.x + B1 * tank_pos.y + C1) / sqrt(A1 * A1 + B1 * B1);
-	printf("\nCross_track_error: %i\n", dist_perpendicular);
+	//printf("\nCross_track_error: %i\n", dist_perpendicular);
 
-
-
+	//check if point is above line -> point_y > y_line
+	bool above = false;
+	if (tank_pos.y > ((-C1 - A1 * tank_pos.x) / B1) )
+		above = true;
 
 	//calculate angle of line between 2 nodes (y = ax + b)  
 	//double a_line_coef = tan((A1*B2 - A2*B1) / (A1*A2 + B1*B2));
 
 	//bounding boxes for node and tank
-	cv::Rect tank_rect(tank_pos.x - 20, tank_pos.y - 20, 40, 40);
-	cv::Rect node_rect(curr_node->getCenter()->x - 20, curr_node->getCenter()->x - 20, 40, 40);
+	cv::Rect tank_rect(tank_pos.x - 40, tank_pos.y - 40, 80, 80);
+	cv::Rect node_rect(curr_node->getCenter()->x - 40, curr_node->getCenter()->x - 40, 80, 80);
 
 
 	//check intersection
@@ -223,14 +224,16 @@ tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angl
 		cout << "Arrived to : " << curr_node << endl;
 		//get next node 
 		curr_node = distance.at(curr_node).second;
+		cout << "POS: " << curr_node->getCenter()->x << "  " << curr_node->getCenter()->y << endl;
 	}
 	
-	return make_tuple(dist_to_node,dist_perpendicular);
+	return make_tuple(dist_to_node,dist_perpendicular, above);
 }
+
 
 void Maze::draw_line_to_node(cv::Mat & img, cv::Point2i & tank_pos)
 {
-	cv::line(img, *(curr_node->getCenter()), tank_pos, cv::Scalar(255, 255, 0), 10, 8, 0);
+	cv::line(img, *(curr_node->getCenter()), tank_pos, cv::Scalar(255, 255, 0), 10, 6, 0);
 	cv::imshow("dst", img);
 }
 
@@ -244,14 +247,14 @@ void Maze::draw_solution(cv::Mat& img)
 		if (next == nullptr)
 		{
 			//draw last line from node to start node
-			cv::line(img, *(node->getCenter()), *(start_node->getCenter()), cv::Scalar(255, 0, 0), 10, 8, 0);
+			cv::line(img, *(node->getCenter()), *(start_node->getCenter()), cv::Scalar(255, 0, 0), 10, 6, 0);
 
 			break;
 		}
 		else
 		{
 			//draw line from node to node
-			cv::line(img, *(node->getCenter()), *(next->getCenter()), cv::Scalar(255,0,0), 10, 8, 0);
+			cv::line(img, *(node->getCenter()), *(next->getCenter()), cv::Scalar(255,0,0), 10, 6, 0);
 			
 			//swap to new nodes 
 			node = next;
@@ -262,6 +265,8 @@ void Maze::draw_solution(cv::Mat& img)
 		}
 
 	}
+	cv::imshow("dst", img);
+
 }
 
 

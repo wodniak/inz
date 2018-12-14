@@ -4,6 +4,14 @@
 #include<opencv2/opencv.hpp>
 #include "SerialPort.h"
 #include "PID.h"
+
+enum eDirection
+{
+	Forward = 0,
+	Left,
+	Right
+};
+
 /*main tank interface*/
 class Tank : public SerialPort
 {
@@ -21,14 +29,14 @@ public:
 	Tank(char *portName) : SerialPort(portName) 
 	{ 
 		position = cv::Point2i(0,0);
-		pid_control = new PID(3, 2, 1.5, 0.1);	//P	I	D	dT
+		pid_control = new PID(3, 0, 1.5, 0.1);	//P	I	D	dT
 	};
 	
 	/*	@!brief : 
 	 *	@!param pid_output : value of calculated error with pid
 	 *	@return : void
 	 */
-	void steer_auto(double & cross_track_error, double & tank_position);
+	void steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & above_line);
 
 	/*Steering routine*/
 	void steer();
