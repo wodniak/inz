@@ -21,9 +21,15 @@ public:
 	Tank(char *portName) : SerialPort(portName) 
 	{ 
 		position = cv::Point2i(0,0);
-		pid_control = new PID(1,1,1);	//init pid controller
+		pid_control = new PID(3, 2, 1.5, 0.1);	//P	I	D	dT
 	};
 	
+	/*	@!brief : 
+	 *	@!param pid_output : value of calculated error with pid
+	 *	@return : void
+	 */
+	void steer_auto(double & cross_track_error, double & tank_position);
+
 	/*Steering routine*/
 	void steer();
 

@@ -188,23 +188,24 @@ tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angl
 {
 	//get next node 
 	Graph_Node * next_node = distance.at(curr_node).second;
-
 	//check if arrived to start_node
 	if (curr_node == nullptr || next_node == nullptr)
 	{
 		cout << "THE END";
 		exit(0);
 	}
-	
+	//y = x + 160
 	//calculate shortest distance from node to tank position
-	double dist_to_node = sqrt( pow((tank_pos.x - curr_node->getCenter()->x),2) + pow((tank_pos.y - curr_node->getCenter()->y),2) );
-
+	unsigned int dist_to_node = sqrt( pow((tank_pos.x - curr_node->getCenter()->x),2) + pow((tank_pos.y - curr_node->getCenter()->y),2) );
+	printf("\nStraight distance to next node: %ui\n", dist_to_node);
 	//calculate line coeffs between 2 nodes
-	double A1, B1, C1;		//line coeffs 
-	tie(A1, B1, C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
-
+	double A1, B1;
+	long C1;
+	tie(A1,B1,C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
 	//calculate perpendicular distance from tank to line between nodes
-	double dist_perpendicular = (A1*tank_pos.x + B1 * tank_pos.y + C1) / (sqrt(pow(A1, 2) + pow(B1, 2)));
+	unsigned int dist_perpendicular = abs(A1*tank_pos.x + B1 * tank_pos.y + C1) / sqrt(A1 * A1 + B1 * B1);
+	printf("\nCross_track_error: %i\n", dist_perpendicular);
+
 
 
 
@@ -224,7 +225,7 @@ tuple<double, double > Maze::calc_dist_to_line(cv::Point2i & tank_pos,int & angl
 		curr_node = distance.at(curr_node).second;
 	}
 	
-	return dist_to_node;
+	return make_tuple(dist_to_node,dist_perpendicular);
 }
 
 void Maze::draw_line_to_node(cv::Mat & img, cv::Point2i & tank_pos)
@@ -269,15 +270,14 @@ void Maze::draw_solution(cv::Mat& img)
  *	@param p2 : coordinates of second node in graph
  *	@return : tuple with line coeffs
  */
-tuple<double, double, double> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2)
+tuple<double, double, long> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2)
 {
-	/*  { A = yb - ya
+	/*
+		{ A = yb - ya
 		{ B = xa - xb
 		{ C = xb*ya - xa*yb
 	*/
-	double A, B, C;		
-	A = p2->y - p1->y;
-	B = p1->x - p2->x;
-	C = p2->x * p1->y - p1->x * p2->y;
-	return make_tuple(A, B, C);
+	return make_tuple(p2->y - p1->y,
+					  p1->x - p2->x,
+					  p2->x * p1->y - p1->x * p2->y);
 }

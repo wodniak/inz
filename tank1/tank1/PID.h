@@ -11,11 +11,16 @@ private:
 	 * kd -  derivative gain
 	 */
 	double kp, ki, kd;
-	double min, max;
+	double _min, _max;		//limits
 	double dt, pre_error, integral;
+
 public:
-	PID(float kp, float ki, float kd) :kp(kp), ki(ki), kd(kd) {};
-	double & calculate_PID(double dist_to_line, double tank_position);
+	PID(double kp, double ki, double kd, double dt) :
+		kp(kp),	ki(ki), kd(kd), dt(dt),
+		pre_error(0),integral(0),
+		_min(0),_max(5000){};
+
+	double calculate_PID(double & cross_track_error);
 
 };
 

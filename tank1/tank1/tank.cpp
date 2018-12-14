@@ -1,7 +1,39 @@
 #include "tank.h"
 #include <iostream>
 
-/* Steering routine 
+void Tank::steer_auto(double & cross_track_error, double & tank_position)
+{
+	//pid controller
+	double pid_output = pid_control->calculate_PID(cross_track_error);
+
+	//console info
+	std::cout << "Err : " << cross_track_error << " PID: " << pid_output << std::endl;
+
+	//tank on left side of the line
+	//turn right
+	//if (pid_output > 0)
+	//{
+		/*LEFT wheel*/
+	/*
+		if (GetKeyState(0x41) & 0x800)		//key 'A'
+		{
+			left_wheel = 127;
+		}
+		else if (GetKeyState(0x5A) & 0x800)	//key 'Z'
+		{
+			left_wheel = 100;	//~80% power
+		}
+		else if (pid_output > 500)
+		{
+
+		}
+
+	}
+	*/
+
+}
+
+/* Steering routine
       LEFT wheel: 
 		0x41 A - full speed forward
 		0x5A Z - medium speed forward

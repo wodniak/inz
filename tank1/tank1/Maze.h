@@ -101,7 +101,7 @@ public:
  *	@param p2 : coordinates of second node in graph
  *	@return : tuple with line coeffs 
  */
-tuple<double, double, double> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2);
+tuple<double, double, long> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2);
 
 
 #endif // MAZE_H
