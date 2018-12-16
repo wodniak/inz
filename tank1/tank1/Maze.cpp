@@ -15,7 +15,7 @@ void Graph_Node::fill_adjacent_table(vector<Graph_Node*> & all_nodes)
 	{
 		int distance = (int)this->getDistance(all_nodes[i]);
 		//ignore self
-		if ( distance == 0 || distance > 100)
+		if ( distance == 0 || distance > 45)
 		{
 			continue;
 		}
@@ -72,12 +72,12 @@ Maze::Maze(vector<Graph_Node*> & all_nodes)
 	//first encountered node in last line is start node 
 		for (int i = 0; i < g->size(); ++i)
 		{
-			if (g -> operator[](i)->getCenter()->y == 40 && end_node == nullptr)
+			if (g -> operator[](i)->getCenter()->y == 20 && end_node == nullptr)	//HARDCODED
 			{
 				end_node = g -> operator[](i);
 				curr_node = g -> operator[](i);
 			}
-			else if (g -> operator[](i)->getCenter()->y == 1000) //hardcoded last sliding window line!!
+			else if (g -> operator[](i)->getCenter()->y == 460) //HARDCODED last sliding window line!!
 			{
 				start_node = g -> operator[](i);
 				break;
@@ -100,6 +100,7 @@ Maze::Maze(vector<Graph_Node*> & all_nodes)
 	catch (const char * msg)
 	{
 		cerr << msg;
+		system("pause");
 	}
 }
 
@@ -197,37 +198,108 @@ tuple<double, double, bool> Maze::calc_dist_to_line(cv::Point2i & tank_pos,int &
 	//printf("\nStraight distance to next node: %ui\n", dist_to_node);
 
 	//calculate line coeffs between 2 nodes
-	double A1, B1;
-	long C1;
-	tie(A1,B1,C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
+	double A1, B1, C1;
+	tie(A1, B1, C1) = calc_line_coeffs(curr_node->getCenter(), next_node->getCenter());
 
-	//calculate perpendicular distance from tank to line between nodes
+	//calculate perpendicular distance from tank to line between nodes (cross_track_error)
 	unsigned int dist_perpendicular = abs(A1*tank_pos.x + B1 * tank_pos.y + C1) / sqrt(A1 * A1 + B1 * B1);
 	//printf("\nCross_track_error: %i\n", dist_perpendicular);
 
-	//check if point is above line -> point_y > y_line
-	bool above = false;
-	if (tank_pos.y > ((-C1 - A1 * tank_pos.x) / B1) )
-		above = true;
+	bool tank_turn_right = true;			//from TANKS perspective
+
+	//VERTICAL or HORIZONTAL ??
+	//VERTICAL
+	if (A1 == 0)	//check if line is vertical
+	{
+		//go UP or DOWN ??
+		//DOWN
+		if (tank_pos.y < next_node->getCenter()->y)
+		{
+			//turn LEFT or RIGHT ??
+			if (tank_pos.x < next_node->getCenter()->x)
+			{
+				//LEFT turn - toogle
+				!tank_turn_right;
+			}
+			else
+			{
+				//RIGHT turn - do not toogle
+			}
+		}
+		//UP
+		else
+		{
+			//turn LEFT or RIGHT ??
+			if (tank_pos.x > next_node->getCenter()->x)
+			{
+				//LEFT turn - toogle
+				!tank_turn_right;
+			}
+			else
+			{
+				//RIGHT turn - do not toogle
+			}
+		}
+	}
+	// HORIZONTAL
+	else if (B1 == 0)
+	{
+		//go LEFT or RIGHT ??
+		//RIGHT
+		if (tank_pos.x < next_node->getCenter()->x)
+		{
+			//turn LEFT or RIGHT ??
+			if (tank_pos.y < next_node->getCenter()->y)
+			{
+				//RIGHT turn - do not toogle
+			}
+			else
+			{
+				//LEFT turn - toogle
+				!tank_turn_right;
+			}
+		}
+		//LEFT
+		else
+		{
+			//turn LEFT or RIGHT ??
+			if (tank_pos.y > next_node->getCenter()->y)
+			{
+				//RIGHT turn - do not toogle
+			}
+			else
+			{
+				//LEFT turn - toogle
+				!tank_turn_right;
+			}
+		}
+	}
+	else
+	{
+		cout << "WTF?";
+	}
 
 	//calculate angle of line between 2 nodes (y = ax + b)  
 	//double a_line_coef = tan((A1*B2 - A2*B1) / (A1*A2 + B1*B2));
 
+
+	/* COLLISION */
 	//bounding boxes for node and tank
-	cv::Rect tank_rect(tank_pos.x - 40, tank_pos.y - 40, 80, 80);
-	cv::Rect node_rect(curr_node->getCenter()->x - 40, curr_node->getCenter()->x - 40, 80, 80);
-
-
+	cv::Rect tank_rect(tank_pos.x - 20, tank_pos.y - 20, 40, 40);
+	cv::Rect node_rect(curr_node->getCenter()->x - 20, curr_node->getCenter()->x - 20, 40, 40);
 	//check intersection
 	if((tank_rect & node_rect).area() > 0)
 	{
 		cout << "Arrived to : " << curr_node << endl;
+		//check if visited node is corner...
+		
+		
 		//get next node 
 		curr_node = distance.at(curr_node).second;
 		cout << "POS: " << curr_node->getCenter()->x << "  " << curr_node->getCenter()->y << endl;
 	}
 	
-	return make_tuple(dist_to_node,dist_perpendicular, above);
+	return make_tuple(dist_to_node,dist_perpendicular, tank_turn_right);
 }
 
 
@@ -275,7 +347,7 @@ void Maze::draw_solution(cv::Mat& img)
  *	@param p2 : coordinates of second node in graph
  *	@return : tuple with line coeffs
  */
-tuple<double, double, long> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2)
+tuple<double, double, double> calc_line_coeffs(cv::Point2i * p1, cv::Point2i * p2)
 {
 	/*
 		{ A = yb - ya

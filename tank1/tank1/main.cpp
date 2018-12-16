@@ -27,7 +27,9 @@ int main()
 	if (!cap.isOpened())					// Check if camera opened successfully 
 	{
 		cout << "Error opening video stream or file" << endl;
+		system("pause");
 		return 15;
+
 	}	
 	//TODO gives unknown error - investigate
 	/*
@@ -40,10 +42,11 @@ int main()
 
 	Mat frame;				//matrix for each frame in video
 	cap >> frame;			//get first frame without robot
-	frame = imread("data\\test.jpg", 1); //first frame - mock
-	
+	frame = imread("data\\mock3.jpg", 1); //first frame - mock
+
 	Myimgproc::init();
 	Myimgproc::draw_maze(frame);		//get maze
+
 	
 	//create maze and calculate shortest path
 	Maze * maze = Myimgproc::create_graph2();
@@ -55,22 +58,24 @@ int main()
 	Point2i tank_position;
 	int angle;
 	double dist_to_line, cross_track_error;
-	bool above;
+	bool tank_turn_right;
 
 	//loop until end of video
 	while (tank.isConnected())
 	{
 
-		tank.steer();
-		Sleep(100);
+		//tank.steer();
+		//Sleep(100);
 
-		if (frame_number % 5 == 0)			//every 10th frame update steering
+		if (frame_number % 3 == 0)			//every nth frame update steering
 		{
-			//tank.read_sensors();
+			/*
+				STEERING ROUTINE
+			*/
 			tie(tank_position,angle) = Myimgproc::processImages(frame);			//keep track of tank center & angle
-			tie(dist_to_line, cross_track_error, above) = maze->calc_dist_to_line(tank_position,angle);		//calc distance to node
+			tie(dist_to_line, cross_track_error, tank_turn_right) = maze->calc_dist_to_line(tank_position,angle);		//calc distance to node
 			
-			tank.steer_auto(cross_track_error, tank_position, above);		//send steering values to robot
+			tank.steer_auto(cross_track_error, tank_position, tank_turn_right);		//send steering values to robot
 			
 			maze->draw_line_to_node(frame, tank_position);		//just draw line
 			maze->draw_solution(frame);
@@ -85,4 +90,6 @@ int main()
 		waitKey(100);
 	}
 	return 0;
+	system("pause");
+
 }

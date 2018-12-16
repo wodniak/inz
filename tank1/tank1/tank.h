@@ -36,7 +36,14 @@ public:
 	 *	@!param pid_output : value of calculated error with pid
 	 *	@return : void
 	 */
-	void steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & above_line);
+	void steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & tank_turn_right);
+
+	/*	@!brief :
+	 *	@!param pid_output : value of calculated error with pid
+	 *	@return : void
+	 */
+	void steer_corner(bool & tank_turn_right);
+
 
 	/*Steering routine*/
 	void steer();

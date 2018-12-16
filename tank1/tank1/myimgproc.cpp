@@ -119,7 +119,8 @@ void Myimgproc::draw_maze(Mat & frame)
 	
 	//change image from BGR to HSV & extract color
 	cvtColor(frame, src_HSV, COLOR_BGR2HSV);
-	inRange(src_HSV, Scalar(low_H, low_S, low_V), Scalar(high_H, high_S, high_V), dst);
+	 inRange(src_HSV, Scalar(0,0,0), Scalar(180, 255, 30), dst);
+	//inRange(src_HSV, Scalar(low_H, low_S, low_V), Scalar(high_H, high_S, high_V), dst);
 
 	//dilation for reducing number of contours
 	int dilation_size = 8;
@@ -254,9 +255,9 @@ void Myimgproc::create_graph(Mat & frame)
 Maze * Myimgproc::create_graph2()
 {
 	//sliding window params
-	int window_rows = 80;
-	int window_cols = 80;
-	int step = 80;
+	int window_rows = 40;
+	int window_cols = 40;
+	int step = 40;
 
 	//dst with grid
 	Mat grid = dst.clone();
@@ -278,7 +279,7 @@ Maze * Myimgproc::create_graph2()
 					windows.tl().x, windows.tl().y, windows.br().x, windows.br().y);
 				//draw point just to show nodes
 				Point2i curr_point = middle_point(windows);
-				circle(grid, curr_point, 15, Scalar(255), -1);
+				circle(grid, curr_point, 5, Scalar(255), -1);
 
 				//init node
 				all_nodes.push_back(new Graph_Node(curr_point));
@@ -319,9 +320,13 @@ bool Myimgproc::check_empty(Rect & windows, Mat & frame)
 	int row_right = windows.br().x;
 	
 	//w/o crashes at right edge detect in 2nd for loop
-	if (row_right == 1440)
+	if (row_right == 640)
 	{
 		row_right -= 1;
+	}
+	if (col_right == 480)
+	{
+		col_right -= 1;
 	}
 
 	printf("EMPTY:: Top-left: (%i %i)		bottom-right: (%i %i)\n",
@@ -357,7 +362,7 @@ bool Myimgproc::check_empty(Rect & windows, Mat & frame)
 
 Point2i Myimgproc::middle_point(Rect & windows)
 {
-	return Point2i( windows.tl().x + 40, windows.tl().y + 40);
+	return Point2i( windows.tl().x + 20, windows.tl().y + 20);
 }
 
 

@@ -1,7 +1,7 @@
 #include "tank.h"
 #include <iostream>
 
-void Tank::steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & above_line)
+void Tank::steer_auto(double & cross_track_error, cv::Point2i & tank_position, bool & tank_turn_right)
 {
 	//pid controller
 	double pid_output = pid_control->calculate_PID(cross_track_error);
@@ -9,30 +9,51 @@ void Tank::steer_auto(double & cross_track_error, cv::Point2i & tank_position, b
 	//console info
 	std::cout << "Err : " << cross_track_error << " PID: " << pid_output << "  tank: " << tank_position.x << ",  " << tank_position.y << std::endl;
 
-
-	//tank above of the line
 	//turn right
-	
-	//if (pid_output > 0)
-	//{
-		/*LEFT wheel*/
-	/*
-		if (GetKeyState(0x41) & 0x800)		//key 'A'
+	if (tank_turn_right)
+	{
+		//set some threshold value for full ahead speed
+		//above that value -> left wheel goes faster and faster, depending on track error
+		if (pid_output < 100)	//go straight
 		{
-			left_wheel = 127;
+			left_wheel	= 100;	//~80% power
+			right_wheel = 100;
 		}
-		else if (GetKeyState(0x5A) & 0x800)	//key 'Z'
+		else if (pid_output >= 100 && pid_output < 300)
+		{
+			left_wheel	= 127;	//~80% power
+			right_wheel = 100;
+		}
+	}
+	else
+	{
+		//set some threshold value for full ahead speed
+		//above that value -> left wheel goes faster and faster, depending on track error
+		if (pid_output < 100)	//go straight
 		{
 			left_wheel = 100;	//~80% power
+			right_wheel = 100;
 		}
-		else if (pid_output > 500)
+		else if (pid_output >= 100 && pid_output < 300)
 		{
-
+			left_wheel	= 100;	//~80% power
+			right_wheel = 127;
 		}
-
 	}
-	*/
+	if (GetKeyState(0x41) & 0x800)		//key 'A'
+	{
+		left_wheel	= 0;
+		right_wheel = 0;
+	}
 
+	/*Send both left and right steering value*/
+	writeSerialPort(&left_wheel, sizeof(unsigned char));
+	writeSerialPort(&right_wheel, sizeof(unsigned char));
+
+}
+
+void Tank::steer_corner(bool & tank_turn_right)
+{
 }
 
 /* Steering routine
