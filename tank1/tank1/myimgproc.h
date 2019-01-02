@@ -12,6 +12,7 @@
 #include <opencv2/video.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "Maze.h"
 
 using namespace cv;
 using namespace std;
@@ -49,7 +50,7 @@ public:
 	*  mark it with contour
 	*  uses background substraction algorithm
 	*/
-	static void processImages(Mat & frame);
+	static tuple<Point2i,int> processImages(Mat & frame);
 
 
 	/*Extract maze lines from first image
@@ -68,7 +69,7 @@ public:
 	 * Scan 1st frame and create graph nodes
 	 * makes graph with rect tiles (sliding window)
 	 */
-	static void create_graph2();
+	static Maze * create_graph2();
 	
 	/**
 	 *	for each rectangle
